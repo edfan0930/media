@@ -7,9 +7,23 @@ const (
 	HakkaPath    = "play/sounds/hakka"
 )
 
-func Mandarin() error {
+func Mandarin(call, counter int) error {
 
-	PlayAudio(MandarinRules(83, 3))
+	return PlayAudio(MandarinRules(call, counter))
 
-	return nil
+}
+
+func English(call, counter int) error {
+
+	return PlayAudio(EnglishRules(call, counter))
+}
+
+func Hokkien(call, counter int) error {
+
+	return PlayAudio(HokkienRules(call, counter))
+}
+
+func Hakka(call, counter int) error {
+
+	return PlayAudio(HakkaRules(call, counter))
 }

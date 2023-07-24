@@ -12,13 +12,15 @@ import (
 
 var englishSounds embed.FS
 
-func PlayAudio(files []string) {
+func PlayAudio(files []string) error {
 
 	for _, file := range files {
 		if err := PlayFile(file); err != nil {
-			panic(err)
+			return err
 		}
 	}
+
+	return nil
 }
 
 func PlayFile(filename string) error {
