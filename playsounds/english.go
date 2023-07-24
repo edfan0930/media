@@ -1,4 +1,4 @@
-package play
+package playsounds
 
 import (
 	"strconv"
@@ -15,7 +15,7 @@ func EnglishRules(callNumber, counterNumber int) []string {
 
 	all = append(all, strings.Split(n, "")...)
 
-	all = append(all, "請到", "櫃台", "號", c)
+	all = append(all, append([]string{"請到", "櫃台", "號"}, strings.Split(c, "")...)...)
 
 	Put(EnglishPath, all)
 	PutWAVExtension(all)

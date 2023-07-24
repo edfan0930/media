@@ -1,21 +1,37 @@
-package play
+package playsounds
 
 import (
+	"bytes"
 	"embed"
-	"os"
+	"io/fs"
+	"io/ioutil"
 
 	"github.com/go-audio/wav"
 	"github.com/hajimehoshi/oto"
 )
 
-//go:embed sounds/english/**.wav
-
+//go:embed sounds/english/*.wav
 var englishSounds embed.FS
 
-func PlayAudio(files []string) error {
+//go:embed sounds/mandarin/*.wav
+var mandarinSounds embed.FS
 
+//go:embed sounds/hokkien/*.wav
+var hokkienSounds embed.FS
+
+//go:embed sounds/hakka/*.wav
+var hakkaSounds embed.FS
+
+var soundMap = map[string]fs.FS{
+	"english":  englishSounds,
+	"mandarin": mandarinSounds,
+	"hokkien":  hokkienSounds,
+	"hakka":    hakkaSounds,
+}
+
+func PlayAudio(language string, files []string) error {
 	for _, file := range files {
-		if err := PlayFile(file); err != nil {
+		if err := PlayFile(language, file); err != nil {
 			return err
 		}
 	}
@@ -23,19 +39,31 @@ func PlayAudio(files []string) error {
 	return nil
 }
 
-func PlayFile(filename string) error {
-	// Open the WAV file
-	f, err := os.Open(filename)
+func PlayFile(language string, filename string) error {
+	// Retrieve the correct FS based on the language
+	fs := soundMap[language]
+
+	// Open the WAV file from the embedded file system
+	f, err := fs.Open(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
+	// Read file content
+	content, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	// Create a bytes reader
+	buf := bytes.NewReader(content)
+
 	// Create a new WAV decoder
-	d := wav.NewDecoder(f)
+	d := wav.NewDecoder(buf)
 
 	// Decode the full audio
-	buf, err := d.FullPCMBuffer()
+	audioBuf, err := d.FullPCMBuffer()
 	if err != nil {
 		return err
 	}
@@ -51,7 +79,7 @@ func PlayFile(filename string) error {
 	defer p.Close()
 
 	// Convert and play
-	return playAudioData(buf.Data, p)
+	return playAudioData(audioBuf.Data, p)
 }
 
 func playAudioData(data []int, player *oto.Player) error {
