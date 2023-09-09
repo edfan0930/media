@@ -3,8 +3,8 @@ package playsounds
 import (
 	"bytes"
 	"embed"
+	"io"
 	"io/fs"
-	"io/ioutil"
 
 	"github.com/go-audio/wav"
 	"github.com/hajimehoshi/oto"
@@ -51,7 +51,7 @@ func PlayFile(language string, filename string) error {
 	defer f.Close()
 
 	// Read file content
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
