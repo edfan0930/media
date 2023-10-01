@@ -22,11 +22,15 @@ var hokkienSounds embed.FS
 //go:embed sounds/hakka/*.wav
 var hakkaSounds embed.FS
 
+//go:embed sounds/other/*.wav
+var otherSounds embed.FS
+
 var soundMap = map[string]fs.FS{
 	"english":  englishSounds,
 	"mandarin": mandarinSounds,
 	"hokkien":  hokkienSounds,
 	"hakka":    hakkaSounds,
+	"other":    otherSounds,
 }
 
 func PlayAudio(language string, files []string) error {
@@ -42,7 +46,6 @@ func PlayAudio(language string, files []string) error {
 func PlayFile(language string, filename string) error {
 	// Retrieve the correct FS based on the language
 	fs := soundMap[language]
-
 	// Open the WAV file from the embedded file system
 	f, err := fs.Open(filename)
 	if err != nil {
@@ -67,7 +70,6 @@ func PlayFile(language string, filename string) error {
 	if err != nil {
 		return err
 	}
-
 	// Create the player with correct sample rate and number of channels
 	c, err := oto.NewContext(int(d.SampleRate), int(d.NumChans), 2, 8192)
 	if err != nil {

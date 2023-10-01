@@ -27,3 +27,9 @@ func Hakka(call, counter int) error {
 
 	return PlayAudio("hakka", HakkaRules(call, counter))
 }
+
+func Other(fileName string) error {
+
+	fileName = "sounds/other/" + fileName + ".wav"
+	return PlayFile("other", fileName)
+}
