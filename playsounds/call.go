@@ -13,6 +13,12 @@ func Mandarin(call, counter int) error {
 
 }
 
+func MandarinWithSingleSound(call int) error {
+	err := PlayAudio("mandarin", SingleWithMandarin(call))
+
+	return err
+}
+
 func English(call, counter int) error {
 
 	return PlayAudio("english", EnglishRules(call, counter))

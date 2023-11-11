@@ -45,6 +45,20 @@ func MandarinRules(callNumber, counterNumber int) []string {
 	return all
 }
 
+// MandarinWithSingle
+func SingleWithMandarin(number int) []string {
+
+	str := strconv.Itoa(number)
+
+	// 使用 strings.Split 将字符串切分为字符切片
+	chars := strings.Split(str, "")
+	chars = append(chars, "號")
+	Put(MandarinPath, chars)
+	PutWAVExtension(chars)
+
+	return chars
+}
+
 // LessHundred
 func LessHundred(n *[]string) {
 
