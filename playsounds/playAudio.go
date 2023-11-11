@@ -3,6 +3,7 @@ package playsounds
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"io"
 	"io/fs"
 
@@ -64,7 +65,9 @@ func PlayFile(language string, filename string) error {
 
 	// Create a new WAV decoder
 	d := wav.NewDecoder(buf)
-
+	if d == nil {
+		return errors.New("invalid WAV file")
+	}
 	// Decode the full audio
 	audioBuf, err := d.FullPCMBuffer()
 	if err != nil {
@@ -81,10 +84,17 @@ func PlayFile(language string, filename string) error {
 	defer p.Close()
 
 	// Convert and play
-	return playAudioData(audioBuf.Data, p)
+	bytesData := intToBytes(audioBuf.Data)
+
+	// Write the byte data to the player
+	if _, err := p.Write(bytesData); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func playAudioData(data []int, player *oto.Player) error {
+/* func playAudioData(data []int, player *oto.Player) error {
 	// Convert the int audio data to byte
 	bytesData := intToBytes(data)
 
@@ -94,7 +104,7 @@ func playAudioData(data []int, player *oto.Player) error {
 	}
 
 	return nil
-}
+} */
 
 func intToBytes(data []int) []byte {
 	int16Data := make([]int16, len(data))
