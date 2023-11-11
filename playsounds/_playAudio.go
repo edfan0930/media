@@ -6,14 +6,11 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"time"
 
 	"github.com/go-audio/wav"
-	"github.com/hajimehoshi/oto/v2"
+	"github.com/hajimehoshi/oto"
 )
 
-// 預嵌入的音頻文件
-//
 //go:embed sounds/english/*.wav
 var englishSounds embed.FS
 
@@ -38,19 +35,8 @@ var soundMap = map[string]fs.FS{
 }
 
 func PlayAudio(language string, files []string) error {
-	var context *oto.Context
-	var readyChan chan struct{}
-	var err error
-
 	for _, file := range files {
-		if context == nil {
-			context, readyChan, err = initContext(language, file)
-			if err != nil {
-				return err
-			}
-			<-readyChan // 等待音頻設備準備就緒
-		}
-		if err := PlayFile(context, language, file); err != nil {
+		if err := PlayFile(language, file); err != nil {
 			return err
 		}
 	}
@@ -58,67 +44,67 @@ func PlayAudio(language string, files []string) error {
 	return nil
 }
 
-func initContext(language string, filename string) (*oto.Context, chan struct{}, error) {
+func PlayFile(language string, filename string) error {
+	// Retrieve the correct FS based on the language
 	fs := soundMap[language]
-	f, err := fs.Open(filename)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer f.Close()
-
-	buf, err := io.ReadAll(f)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	d := wav.NewDecoder(bytes.NewReader(buf))
-	if d == nil {
-		return nil, nil, errors.New("invalid WAV file")
-	}
-	if _, err := d.FullPCMBuffer(); err != nil {
-		return nil, nil, err
-	}
-
-	context, readyChan, err := oto.NewContext(int(d.SampleRate), int(d.NumChans), 2)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return context, readyChan, nil
-}
-
-func PlayFile(context *oto.Context, language string, filename string) error {
-	fs := soundMap[language]
+	// Open the WAV file from the embedded file system
 	f, err := fs.Open(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
+	// Read file content
 	content, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
 
+	// Create a bytes reader
 	buf := bytes.NewReader(content)
+
+	// Create a new WAV decoder
 	d := wav.NewDecoder(buf)
 	if d == nil {
 		return errors.New("invalid WAV file")
 	}
+	// Decode the full audio
 	audioBuf, err := d.FullPCMBuffer()
 	if err != nil {
 		return err
 	}
-
-	player := context.NewPlayer(bytes.NewReader(intToBytes(audioBuf.Data)))
-	defer player.Close()
-
-	player.Play()
-	for player.IsPlaying() {
-		time.Sleep(time.Millisecond)
+	// Create the player with correct sample rate and number of channels
+	c, err := oto.NewContext(int(d.SampleRate), int(d.NumChans), 2, 8192)
+	if err != nil {
+		return err
 	}
+	defer c.Close()
+
+	p := c.NewPlayer()
+	defer p.Close()
+
+	// Convert and play
+	bytesData := intToBytes(audioBuf.Data)
+
+	// Write the byte data to the player
+	if _, err := p.Write(bytesData); err != nil {
+		return err
+	}
+
 	return nil
 }
+
+/* func playAudioData(data []int, player *oto.Player) error {
+	// Convert the int audio data to byte
+	bytesData := intToBytes(data)
+
+	// Write the byte data to the player
+	if _, err := player.Write(bytesData); err != nil {
+		return err
+	}
+
+	return nil
+} */
 
 func intToBytes(data []int) []byte {
 	int16Data := make([]int16, len(data))

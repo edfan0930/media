@@ -31,5 +31,7 @@ func Hakka(call, counter int) error {
 func Other(fileName string) error {
 
 	fileName = "sounds/other/" + fileName + ".wav"
-	return PlayFile("other", fileName)
+
+	err := PlayAudio("other", []string{fileName})
+	return err
 }
